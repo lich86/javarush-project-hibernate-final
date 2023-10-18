@@ -88,11 +88,14 @@ public class Main {
             List<City> allCities = new ArrayList<>();
             session.beginTransaction();
 
+            main.countryDAO.getAll();
+
             int totalCount = main.cityDAO.getTotalCount();
             int step = 500;
             for (int i = 0; i < totalCount; i += step) {
                 allCities.addAll(main.cityDAO.getItems(i, step));
             }
+
             session.getTransaction().commit();
             return allCities;
         }
@@ -161,7 +164,7 @@ public class Main {
             session.beginTransaction();
             for (Integer id : ids) {
                 City city = cityDAO.getById(id);
-                Set<CountryLanguage> languages = city.getCountry().getLanguages();
+                city.getCountry().getLanguages();
             }
             session.getTransaction().commit();
         }
