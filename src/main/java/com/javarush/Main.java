@@ -2,6 +2,7 @@ package com.javarush;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javarush.constants.DBConstants;
 import com.javarush.model.City;
 import com.javarush.model.Country;
 import com.javarush.model.CountryLanguage;
@@ -47,14 +48,14 @@ public class Main {
     private SessionFactory prepareRelationalDb() {
         final SessionFactory sessionFactory;
         Properties properties = new Properties();
-        properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQL8Dialect");
-        properties.put(Environment.DRIVER, "com.p6spy.engine.spy.P6SpyDriver");
-        properties.put(Environment.URL, "jdbc:p6spy:mysql://localhost:3308/world");
-        properties.put(Environment.USER, "root");
-        properties.put(Environment.PASS, "root");
-        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
-        properties.put(Environment.HBM2DDL_AUTO, "validate");
-        properties.put(Environment.STATEMENT_BATCH_SIZE, "100");
+        properties.put(Environment.DIALECT, DBConstants.DB_DIALECT);
+        properties.put(Environment.DRIVER, DBConstants.DB_DRIVER);
+        properties.put(Environment.URL, DBConstants.DB_URL);
+        properties.put(Environment.USER, DBConstants.DB_USER);
+        properties.put(Environment.PASS, DBConstants.DB_PASS);
+        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, DBConstants.CURRENT_SESSION_CONTEXT_CLASS);
+        properties.put(Environment.HBM2DDL_AUTO, DBConstants.DB_HBM2DDL_AUTO);
+        properties.put(Environment.STATEMENT_BATCH_SIZE, DBConstants.STATEMENT_BATCH_SIZE);
 
         sessionFactory = new Configuration()
                 .addAnnotatedClass(City.class)
@@ -66,7 +67,7 @@ public class Main {
     }
 
     private RedisClient prepareRedisClient() {
-        RedisClient redisClient = RedisClient.create(RedisURI.create("localhost", 6379));
+        RedisClient redisClient = RedisClient.create(RedisURI.create(DBConstants.REDIS_HOST, RedisURI.DEFAULT_REDIS_PORT));
         try (StatefulRedisConnection<String, String> connection = redisClient.connect()) {
             System.out.println("\nConnected to Redis\n");
         }
@@ -87,14 +88,11 @@ public class Main {
             List<City> allCities = new ArrayList<>();
             session.beginTransaction();
 
-            List<Country> countries = main.countryDAO.getAll();
-
             int totalCount = main.cityDAO.getTotalCount();
             int step = 500;
             for (int i = 0; i < totalCount; i += step) {
                 allCities.addAll(main.cityDAO.getItems(i, step));
             }
-            List<CityCountry> preparedData = main.transformData(allCities);
             session.getTransaction().commit();
             return allCities;
         }
